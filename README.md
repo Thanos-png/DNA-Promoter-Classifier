@@ -1,4 +1,4 @@
-# DNA-Promoter-Classification
+# DNA-Promoter-Classifier
 
 A deep learning–based classifier for DNA promoter sequence detection using the UCI Promoter Gene Sequences dataset. Implemented in PyTorch with one-hot encoding and a simple 1D CNN.
 
@@ -15,18 +15,16 @@ A deep learning–based classifier for DNA promoter sequence detection using the
 
 ## Getting Started
 
-### Requirements
-
-Install dependencies:
-```bash
-pip install -r requirements.txt
-```
-
 ### Installation
-
 ```bash
 git clone https://github.com/Thanos-png/DNA-Promoter-Classifier.git
 cd DNA-Promoter-Classifier
+```
+
+### Requirements
+Install dependencies:
+```bash
+pip install -r requirements.txt
 ```
 
 ### Ensure GPU is Available
@@ -58,6 +56,7 @@ python train.py
 
 #### Hyperparameters used:
 | Parameter    | Value  | Description                          |
+| ------------ | ------ | ------------------------------------ |
 | `epochs`     | `20`   | Number of epochs                     |
 | `batch_size` | `16`   | Number of samples per batch          |
 | `lr`         | `1e-3` | Learning rate                        |
@@ -127,5 +126,9 @@ python test.py
 ## Results & Analysis
 ### PromoterCNN metrics
 
+#### The trained models are stored in the `results/models` directory.
+#### The metrics visualizations are stored in the `results/plots` directory.
 
-#### The visualizations are stored in the `results/plots` directory.
+## Contact
+For questions or feedback, feel free to reach me out:
+* **Email:** thanos.panagiotidis@protonmail.com
