@@ -90,7 +90,7 @@ class DNADataset(Dataset):
         return self.sequences[idx], self.labels[idx]
 
 
-def save_processed_data(train_dataset: DNADataset, test_dataset: DNADataset, 
+def save_processed_data(train_dataset: DNADataset, val_dataset: DNADataset, test_dataset: DNADataset, 
                        mapping: Dict, output_dir: str = '../data/processed') -> None:
     """
     Save processed datasets for later use.
@@ -99,6 +99,7 @@ def save_processed_data(train_dataset: DNADataset, test_dataset: DNADataset,
 
     # Save datasets
     torch.save(train_dataset, os.path.join(output_dir, 'train_dataset.pt'))
+    torch.save(val_dataset, os.path.join(output_dir, 'val_dataset.pt'))
     torch.save(test_dataset, os.path.join(output_dir, 'test_dataset.pt'))
 
     # Save processed data/mapping
@@ -108,6 +109,7 @@ def save_processed_data(train_dataset: DNADataset, test_dataset: DNADataset,
     # Save metadata
     metadata = {
         'train_size': len(train_dataset),
+        'val_size': len(val_dataset),
         'test_size': len(test_dataset),
         'sequence_length': train_dataset.sequences.shape[1],
         'num_features': train_dataset.sequences.shape[2]
@@ -119,6 +121,7 @@ def save_processed_data(train_dataset: DNADataset, test_dataset: DNADataset,
     print(f"Processed data saved to {output_dir}")
     print(f"Files created:")
     print(f"  - train_dataset.pt")
+    print(f"  - val_dataset.pt")
     print(f"  - test_dataset.pt") 
     print(f"  - nucleotide_mapping.pkl")
     print(f"  - metadata.pkl")
@@ -130,24 +133,27 @@ if __name__ == "__main__":
     sequences, labels = load_promoter_data(file_path)
     encoded_seqs = one_hot_encode(sequences)
 
-    # Train/test split
-    X_train, X_test, y_train, y_test = train_test_split(
-        encoded_seqs,
-        labels,
-        test_size=0.3,
-        random_state=42,
-        stratify=labels
+    # Train/val/test split
+    X_temp, X_test, y_temp, y_test = train_test_split(
+        encoded_seqs, labels, test_size=0.2, stratify=labels, random_state=42
+    )
+
+    X_train, X_val, y_train, y_val = train_test_split(
+        X_temp, y_temp, test_size=0.25, stratify=y_temp, random_state=42  # 0.25 * 0.8 = 0.2
     )
 
     # Wrap in Datasets & DataLoaders
     train_dataset = DNADataset(X_train, y_train)
-    test_dataset  = DNADataset(X_test,  y_test)
+    val_dataset = DNADataset(X_val, y_val)
+    test_dataset = DNADataset(X_test, y_test)
 
     train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
-    test_loader  = DataLoader(test_dataset,  batch_size=16, shuffle=False)
+    val_loader = DataLoader(val_dataset, batch_size=16, shuffle=False)
+    test_loader = DataLoader(test_dataset, batch_size=16, shuffle=False)
 
     print(f"\nNumber of training samples: {len(train_dataset)}")
-    print(f"Number of testing  samples: {len(test_dataset)}\n")
+    print(f"Number of validation samples: {len(val_dataset)}")
+    print(f"Number of testing samples: {len(test_dataset)}\n")
 
     # Save processed data
-    save_processed_data(train_dataset, test_dataset, mapping)
+    save_processed_data(train_dataset, val_dataset, test_dataset, mapping)

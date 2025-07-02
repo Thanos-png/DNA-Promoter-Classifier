@@ -17,25 +17,29 @@ from model import get_model
 def get_data_loaders_from_processed(
     processed_dir: str = '../data/processed',
     batch_size: int = 16
-) -> Tuple[DataLoader, DataLoader]:
+) -> Tuple[DataLoader, DataLoader, DataLoader]:
     """
     Load preprocessed datasets and return DataLoaders.
     """
-    if not os.path.exists(os.path.join(processed_dir, 'train_dataset.pt')):
-        raise FileNotFoundError(f"Processed data not found in {processed_dir}. Run preprocess.py first.")
+    if not os.path.exists(os.path.join(processed_dir, 'train_dataset.pt') or 
+                          not os.path.exists(os.path.join(processed_dir, 'val_dataset.pt')) or 
+                          not os.path.exists(os.path.join(processed_dir, 'test_dataset.pt'))):
+        raise FileNotFoundError(f"Processed data not found in {processed_dir}.")
 
     train_dataset = torch.load(os.path.join(processed_dir, 'train_dataset.pt'), weights_only=False)
+    val_dataset = torch.load(os.path.join(processed_dir, 'val_dataset.pt'), weights_only=False)
     test_dataset = torch.load(os.path.join(processed_dir, 'test_dataset.pt'), weights_only=False)
 
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
-    return train_loader, test_loader
+    return train_loader, val_loader, test_loader
 
 
 def get_raw_data(data_path: str):
     """
-    Load and encode raw data without train/test split.
+    Load and encode raw data without train/val/test split.
     Returns sequences and labels for cross-validation.
     """
     sequences, labels = load_promoter_data(data_path)
@@ -46,42 +50,54 @@ def get_raw_data(data_path: str):
 def get_data_loaders(
     file_path: str,
     batch_size: int,
-    test_size: float = 0.3,
+    val_size: float = 0.25,  # 0.25 * 0.8 = 0.2
+    test_size: float = 0.2,
     random_state: int = 42
-) -> Tuple[DataLoader, DataLoader]:
+) -> Tuple[DataLoader, DataLoader, DataLoader]:
     """
-    Load data, preprocess, and return train/test DataLoaders.
+    Load data, preprocess, and return train/val/test DataLoaders.
     Args:
         file_path: Path to the promoters.data file.
         batch_size: Batch size for DataLoaders.
+        val_size: Fraction of data for validation.
         test_size: Fraction of data for testing.
         random_state: Seed for reproducibility.
     Returns:
-        train_loader, test_loader
+        train_loader, val_loader, test_loader
     """
     sequences, labels = load_promoter_data(file_path)
-    encoded = one_hot_encode(sequences)
-    X_train, X_test, y_train, y_test = train_test_split(
-        encoded,
-        labels,
-        test_size=test_size,
-        random_state=random_state,
-        stratify=labels,
+    encoded_seqs = one_hot_encode(sequences)
+
+    # Train/val/test split
+    X_temp, X_test, y_temp, y_test = train_test_split(
+        encoded_seqs, labels, test_size=test_size, stratify=labels, random_state=random_state
     )
+
+    X_train, X_val, y_train, y_val = train_test_split(
+        X_temp, y_temp, test_size=val_size, stratify=y_temp, random_state=random_state  # 0.25 * 0.8 = 0.2
+    )
+
+    # Create datasets
     train_dataset = DNADataset(X_train, y_train)
+    val_dataset = DNADataset(X_val, y_val)
     test_dataset = DNADataset(X_test, y_test)
+
+    # Create DataLoaders
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
-    return train_loader, test_loader
+
+    return train_loader, val_loader, test_loader
 
 
 def auto_preprocess_and_get_loaders(
     data_path: str,
     processed_dir: str = '../data/processed',
     batch_size: int = 16,
-    test_size: float = 0.3,
+    val_size: float = 0.25,  # 0.25 * 0.8 = 0.2
+    test_size: float = 0.2,
     random_state: int = 42
-) -> Tuple[DataLoader, DataLoader]:
+) -> Tuple[DataLoader, DataLoader, DataLoader]:
     """
     Automatically preprocess data if not found, then return DataLoaders.
     """
@@ -96,28 +112,30 @@ def auto_preprocess_and_get_loaders(
         sequences, labels = load_promoter_data(data_path)
         encoded_seqs = one_hot_encode(sequences)
 
-        # Train/test split
-        X_train, X_test, y_train, y_test = train_test_split(
-            encoded_seqs,
-            labels,
-            test_size=test_size,
-            random_state=random_state,
-            stratify=labels,
+        # Train/val/test split
+        X_temp, X_test, y_temp, y_test = train_test_split(
+            encoded_seqs, labels, test_size=test_size, stratify=labels, random_state=random_state
+        )
+
+        X_train, X_val, y_train, y_val = train_test_split(
+            X_temp, y_temp, test_size=val_size, stratify=y_temp, random_state=random_state  # 0.25 * 0.8 = 0.2
         )
 
         # Create datasets
         train_dataset = DNADataset(X_train, y_train)
+        val_dataset = DNADataset(X_val, y_val)
         test_dataset = DNADataset(X_test, y_test)
 
         # Save processed data for future use
-        save_processed_data(train_dataset, test_dataset, mapping, processed_dir)
+        save_processed_data(train_dataset, val_dataset, test_dataset, mapping, processed_dir)
 
-        # Create and return DataLoaders
+        # Create DataLoaders
         train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+        val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
         test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
         print("Preprocessing completed successfully!")
-        return train_loader, test_loader
+        return train_loader, val_loader, test_loader
 
 
 def train(
@@ -149,11 +167,11 @@ def train(
 def evaluate(
     model: nn.Module,
     device: torch.device,
-    test_loader: DataLoader,
+    val_loader: DataLoader,
     criterion: nn.Module
 ) -> Tuple[float, float]:
     """
-    Evaluate the model on the test set.
+    Evaluate the model on the val set.
     Returns:
         Tuple of (average_loss, accuracy).
     """
@@ -161,15 +179,15 @@ def evaluate(
     running_loss = 0.0
     correct = 0
     with torch.no_grad():
-        for data, target in test_loader:
+        for data, target in val_loader:
             data, target = data.to(device), target.to(device)
             output = model(data)
             loss = criterion(output.squeeze(), target.float())
             running_loss += loss.item() * data.size(0)
             preds = (output.squeeze() >= 0.5).long()
             correct += preds.eq(target).sum().item()
-    avg_loss = running_loss / len(test_loader.dataset)
-    accuracy = correct / len(test_loader.dataset)
+    avg_loss = running_loss / len(val_loader.dataset)
+    accuracy = correct / len(val_loader.dataset)
     return avg_loss, accuracy
 
 
@@ -179,23 +197,26 @@ def train_single_split(
     batch_size: int,
     epochs: int,
     lr: float,
-    model_path: str
+    model_path: str,
+    val_size: float = 0.25,  # 0.25 * 0.8 = 0.2
+    test_size: float = 0.2
 ):
     """
-    Train model using single train/test split.
+    Train model using single train/val/test split.
     """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
 
     # Automatically handle preprocessing
-    train_loader, test_loader = auto_preprocess_and_get_loaders(
-        data_path, processed_dir, batch_size
+    train_loader, val_loader, test_loader = auto_preprocess_and_get_loaders(
+        data_path, processed_dir, batch_size, val_size, test_size
     )
 
     # Print dataset sizes
     print(f"Training samples: {len(train_loader.dataset)}")
+    print(f"Validation samples: {len(val_loader.dataset)}")
     print(f"Test samples: {len(test_loader.dataset)}")
-    print(f"Total samples: {len(train_loader.dataset) + len(test_loader.dataset)}")
+    print(f"Total samples: {len(train_loader.dataset) + len(val_loader.dataset) + len(test_loader.dataset)}")
 
     model = get_model().to(device)
     criterion = nn.BCELoss()
@@ -210,19 +231,19 @@ def train_single_split(
     best_acc = 0.0
     for epoch in range(1, epochs + 1):
         train_loss = train(model, device, train_loader, criterion, optimizer)
-        test_loss, test_acc = evaluate(model, device, test_loader, criterion)
+        val_loss, val_acc = evaluate(model, device, val_loader, criterion)
         print(
             f"Epoch {epoch}/{epochs} - "
             f"Train Loss: {train_loss:.4f} - "
-            f"Test Loss: {test_loss:.4f} - "
-            f"Test Acc: {test_acc:.4f}"
+            f"Val Loss: {val_loss:.4f} - "
+            f"Val Acc: {val_acc:.4f}"
         )
-        if test_acc > best_acc:
-            best_acc = test_acc
+        if val_acc > best_acc:
+            best_acc = val_acc
             torch.save(model.state_dict(), full_model_path)
             print(f"New best model saved! Accuracy: {best_acc:.4f}")
 
-    print(f"\nTraining completed! Best Test Accuracy: {best_acc:.4f}")
+    print(f"\nTraining completed! Best Accuracy: {best_acc:.4f}")
     print(f"Best model saved as: {full_model_path}")
 
 
@@ -309,27 +330,26 @@ def train_with_cross_validation(
     print(f"Mean Accuracy: {mean_acc:.4f} ± {std_acc:.4f}")
     print(f"Individual Fold Accuracies: {[f'{acc:.4f}' for acc in fold_accuracies]}")
 
-    return fold_accuracies, mean_acc, std_acc
-
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Train PromoterCNN model")
     parser.add_argument("--data_path", type=str, default="../data/molecular+biology+promoter+gene+sequences/promoters.data")
     parser.add_argument("--processed_dir", type=str, default="../data/processed")
     parser.add_argument("--method", type=str, choices=['split', 'cv'], default='split',
-                        help="Training method: 'split' for train/test split, 'cv' for cross-validation")
+                        help="Training method: 'split' for train/val/test split, 'cv' for cross-validation")
     parser.add_argument("--epochs", type=int, default=20)
     parser.add_argument("--batch_size", type=int, default=16)
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--model_path", type=str, default="promoter_cnn.pth")
-    parser.add_argument("--test_size", type=float, default=0.3, help="Test size for train/test split")
+    parser.add_argument("--val_size", type=float, default=0.25, help="Validation size for train/val/test split")
+    parser.add_argument("--test_size", type=float, default=0.2, help="Test size for train/val/test split")
     parser.add_argument("--k_folds", type=int, default=5, help="Number of folds for cross-validation")
     args = parser.parse_args()
 
     if args.method == 'cv':
         print("Training with Cross-Validation")
         cv_model_path = args.model_path.replace('.pth', '_cv.pth')
-        fold_accuracies, mean_acc, std_acc = train_with_cross_validation(
+        train_with_cross_validation(
             args.data_path,
             k_folds=args.k_folds,
             epochs=args.epochs,
@@ -338,14 +358,16 @@ def main() -> None:
             model_path=cv_model_path
         )
     else:
-        print("Training with Train/Test Split")
+        print("Training with Train/Val/Test Split")
         train_single_split(
             args.data_path,
             args.processed_dir,
             args.batch_size,
             args.epochs,
             args.lr,
-            args.model_path
+            args.model_path,
+            args.val_size,
+            args.test_size
         )
 
 

@@ -1,6 +1,6 @@
 # DNA-Promoter-Classifier
 
-A deep learning–based classifier for DNA promoter sequence detection using the UCI Promoter Gene Sequences dataset. Implemented in PyTorch with one-hot encoding and a simple 1D CNN.
+A deep learning-based classifier for DNA promoter sequence detection using the UCI Promoter Gene Sequences dataset. Implemented in PyTorch with one-hot encoding and a simple 1D CNN.
 
 ## Project Overview
 
@@ -41,7 +41,7 @@ python train.py
 ```
 
 #### This will:
-- You can choose if you want the trainning to be done with Cross-Validation `python train.py --method cv` or using the default train/test split method `python train.py`.
+- You can choose if you want the trainning to be done with Cross-Validation `python train.py --method cv` or using the default train/val/test split method `python train.py`.
 - First try to load preprocessed data from `../data/processed/`.
 - If not found, automatically:
     - Load the raw data from the specified path
@@ -55,50 +55,63 @@ python train.py
 - Save the model and the preprocessed data.
 
 #### Hyperparameters used:
-| Parameter    | Value  | Description                          |
-| ------------ | ------ | ------------------------------------ |
-| `epochs`     | `20`   | Number of epochs                     |
-| `batch_size` | `16`   | Number of samples per batch          |
-| `lr`         | `1e-3` | Learning rate                        |
-| `test_size`  | `0.3`  | Test size for train/test split       |
-| `k_folds`    | `5`    | Number of folds for cross-validation |
+| Parameter    | Value  | Description                              |
+| ------------ | ------ | ---------------------------------------- |
+| `epochs`     | `20`   | Number of epochs                         |
+| `batch_size` | `16`   | Number of samples per batch              |
+| `lr`         | `1e-3` | Learning rate                            |
+| `val_size`   | `0.25` | Validation size for train/val/test split |
+| `test_size`  | `0.2`  | Test size for train/val/test split       |
+| `k_folds`    | `5`    | Number of folds for cross-validation     |
 
 
 #### Expected output:
 ```
-Training with Train/Test Split
+Training with Train/Val/Test Split
 Using device: cuda
-Training samples: 84
+Processed data not found in ../data/processed
+Running preprocessing automatically...
+Loaded 106 sequences
+All sequences have the same length.
+Processed data saved to ../data/processed
+Files created:
+  - train_dataset.pt
+  - val_dataset.pt
+  - test_dataset.pt
+  - nucleotide_mapping.pkl
+  - metadata.pkl
+Preprocessing completed successfully!
+Training samples: 63
+Validation samples: 21
 Test samples: 22
 Total samples: 106
 
 Starting training for 20 epochs...
-Epoch 1/20 - Train Loss: 0.6885 - Test Loss: 0.6765 - Test Acc: 0.7273
-New best model saved! Accuracy: 0.7273
-Epoch 2/20 - Train Loss: 0.6594 - Test Loss: 0.6548 - Test Acc: 0.6364
-Epoch 3/20 - Train Loss: 0.6213 - Test Loss: 0.6289 - Test Acc: 0.8636
-New best model saved! Accuracy: 0.8636
-Epoch 4/20 - Train Loss: 0.5706 - Test Loss: 0.5997 - Test Acc: 0.9091
-New best model saved! Accuracy: 0.9091
-Epoch 5/20 - Train Loss: 0.5269 - Test Loss: 0.5620 - Test Acc: 0.8636
-Epoch 6/20 - Train Loss: 0.4689 - Test Loss: 0.5216 - Test Acc: 0.8636
-Epoch 7/20 - Train Loss: 0.4365 - Test Loss: 0.4816 - Test Acc: 0.9545
-New best model saved! Accuracy: 0.9545
-Epoch 8/20 - Train Loss: 0.3658 - Test Loss: 0.4555 - Test Acc: 0.8182
-Epoch 9/20 - Train Loss: 0.3221 - Test Loss: 0.4026 - Test Acc: 0.9545
-Epoch 10/20 - Train Loss: 0.2610 - Test Loss: 0.3664 - Test Acc: 0.9545
-Epoch 11/20 - Train Loss: 0.2199 - Test Loss: 0.3322 - Test Acc: 0.9545
-Epoch 12/20 - Train Loss: 0.1848 - Test Loss: 0.3098 - Test Acc: 0.9091
-Epoch 13/20 - Train Loss: 0.1805 - Test Loss: 0.2943 - Test Acc: 0.9545
-Epoch 14/20 - Train Loss: 0.1445 - Test Loss: 0.2943 - Test Acc: 0.9545
-Epoch 15/20 - Train Loss: 0.1053 - Test Loss: 0.2540 - Test Acc: 0.9545
-Epoch 16/20 - Train Loss: 0.1000 - Test Loss: 0.2430 - Test Acc: 0.9091
-Epoch 17/20 - Train Loss: 0.0716 - Test Loss: 0.2630 - Test Acc: 0.9545
-Epoch 18/20 - Train Loss: 0.0717 - Test Loss: 0.2196 - Test Acc: 0.9091
-Epoch 19/20 - Train Loss: 0.0675 - Test Loss: 0.2101 - Test Acc: 0.9091
-Epoch 20/20 - Train Loss: 0.0522 - Test Loss: 0.2060 - Test Acc: 0.9091
+Epoch 1/20 - Train Loss: 0.6877 - Val Loss: 0.6760 - Val Acc: 0.6667
+New best model saved! Accuracy: 0.6667
+Epoch 2/20 - Train Loss: 0.6711 - Val Loss: 0.6626 - Val Acc: 0.6190
+Epoch 3/20 - Train Loss: 0.6485 - Val Loss: 0.6421 - Val Acc: 0.9048
+New best model saved! Accuracy: 0.9048
+Epoch 4/20 - Train Loss: 0.6245 - Val Loss: 0.6222 - Val Acc: 0.9048
+Epoch 5/20 - Train Loss: 0.5792 - Val Loss: 0.5979 - Val Acc: 0.9048
+Epoch 6/20 - Train Loss: 0.5601 - Val Loss: 0.5761 - Val Acc: 0.9048
+Epoch 7/20 - Train Loss: 0.4843 - Val Loss: 0.5515 - Val Acc: 0.8571
+Epoch 8/20 - Train Loss: 0.4565 - Val Loss: 0.5224 - Val Acc: 0.9048
+Epoch 9/20 - Train Loss: 0.4489 - Val Loss: 0.4916 - Val Acc: 0.9048
+Epoch 10/20 - Train Loss: 0.3775 - Val Loss: 0.4622 - Val Acc: 0.9524
+New best model saved! Accuracy: 0.9524
+Epoch 11/20 - Train Loss: 0.3350 - Val Loss: 0.4339 - Val Acc: 0.9524
+Epoch 12/20 - Train Loss: 0.3042 - Val Loss: 0.4089 - Val Acc: 0.9048
+Epoch 13/20 - Train Loss: 0.2371 - Val Loss: 0.3815 - Val Acc: 0.9524
+Epoch 14/20 - Train Loss: 0.2194 - Val Loss: 0.3600 - Val Acc: 0.9524
+Epoch 15/20 - Train Loss: 0.2177 - Val Loss: 0.3472 - Val Acc: 0.9048
+Epoch 16/20 - Train Loss: 0.1779 - Val Loss: 0.3146 - Val Acc: 0.9524
+Epoch 17/20 - Train Loss: 0.1377 - Val Loss: 0.2972 - Val Acc: 0.9524
+Epoch 18/20 - Train Loss: 0.1283 - Val Loss: 0.3041 - Val Acc: 0.9048
+Epoch 19/20 - Train Loss: 0.1012 - Val Loss: 0.2857 - Val Acc: 0.9048
+Epoch 20/20 - Train Loss: 0.1236 - Val Loss: 0.2599 - Val Acc: 0.9524
 
-Training completed! Best Test Accuracy: 0.9545
+Training completed! Best Accuracy: 0.9524
 Best model saved as: ../results/models/promoter_cnn.pth
 ```
 
