@@ -1,6 +1,6 @@
 # DNA-Promoter-Classifier
 
-A deep learning-based classifier for DNA promoter sequence detection using the UCI Promoter Gene Sequences dataset. Implemented in PyTorch with one-hot encoding and a simple 1D CNN.
+A PyTorch-based deep learning classifier for DNA promoter sequence detection using the UCI Promoter Gene Sequences dataset. Implemented using a 1D Convolutional Neural Network (CNN).
 
 ## Project Overview
 
@@ -10,8 +10,10 @@ A deep learning-based classifier for DNA promoter sequence detection using the U
 - One-hot encodes DNA sequences (A, T, G, C)  
 - Configurable 1D CNN for binary classification 
 
-#### This project uses the **UCI Promoter Gene Sequences Dataset**, available at:
-[UCI Promoter Gene Sequences dataset](https://archive.ics.uci.edu/dataset/67/molecular+biology+promoter+gene+sequences)
+#### Dataset
+- **Source:** [UCI Promoter Gene Sequences Dataset](https://archive.ics.uci.edu/dataset/67/molecular+biology+promoter+gene+sequences)
+- **Size:** 106 sequences (57 nucleotides each)
+- **Labels:** '+' for promoter, '-' for non-promoter
 
 ## Getting Started
 
@@ -55,14 +57,15 @@ python train.py
 - Save the model and the preprocessed data.
 
 #### Hyperparameters used:
-| Parameter    | Value  | Description                              |
-| ------------ | ------ | ---------------------------------------- |
-| `epochs`     | `20`   | Number of epochs                         |
-| `batch_size` | `16`   | Number of samples per batch              |
-| `lr`         | `1e-3` | Learning rate                            |
-| `val_size`   | `0.25` | Validation size for train/val/test split |
-| `test_size`  | `0.2`  | Test size for train/val/test split       |
-| `k_folds`    | `5`    | Number of folds for cross-validation     |
+| Parameter    | Value   | Description                              |
+| ------------ | ------- | ---------------------------------------- |
+| `epochs`     | `20`    | Number of epochs                         |
+| `batch_size` | `16`    | Number of samples per batch              |
+| `lr`         | `1e-3`  | Learning rate                            |
+| `val_size`   | `0.25`  | Validation size for train/val/test split |
+| `test_size`  | `0.2`   | Test size for train/val/test split       |
+| `method`     | `split` | Training method (split/cv)               |
+| `k_folds`    | `5`     | Number of folds for cross-validation     |
 
 
 #### Expected output:
@@ -112,7 +115,22 @@ python test.py
 ```
 
 #### This will:
-- Load the **saved CNN model** and **processed data**.
+- You can choose to test either the train/val/test split model `python test.py` or the cross-validation model `python test.py --method cv`.
+- Load the **saved CNN model** from `../results/models/`.
+- Load the **processed test data** or create it from raw data if not found.
+- Evaluate the model on the test set using **BCEWithLogitsLoss**.
+- Generate and save **comprehensive visualization plots**:
+  - Confusion matrix heatmap with percentages
+  - ROC curve with AUC score
+  - Precision-Recall curve with AUC score
+  - Prediction score distribution by class
+  - Metrics summary bar chart
+- Display detailed **classification metrics**:
+  - Test loss and accuracy
+  - Precision, recall, F1-score for each class
+  - Confusion matrix breakdown
+  - ROC-AUC and PR-AUC scores
+- Save all plots to `../results/plots/` directory.
 
 #### Expected output:
 ```
@@ -169,11 +187,58 @@ Final Test Accuracy: 0.9545
 - Split into train/val/test sets (60/20/20 stratified).
 - Wrap data in a PyTorch `Dataset` and create `DataLoaders`.
 
-## Results & Analysis
-### PromoterCNN metrics
+### CNN Model
+A 1D Convolutional Neural Network (CNN) implemented with PyTorch:
 
-#### The trained models are stored in the `results/models` directory.
-#### The metrics visualizations are stored in the `results/plots` directory.
+**Architecture:**
+- **Input:** One-hot encoded DNA sequences (57×4)
+- **Conv1D Layer:** 4→32 channels, kernel_size=5, ReLU activation
+- **MaxPool1D:** kernel_size=2 for downsampling
+- **Fully Connected:** 832→64 neurons, ReLU activation
+- **Dropout:** 50% regularization
+- **Output Layer:** 64→1 neuron (raw logits)
+- **Loss Function:** BCEWithLogitsLoss (combines sigmoid + BCE)
+
+**Parameters:** ~27K trainable parameters
+
+## Results & Analysis
+
+### Test Performance
+- **Test Loss:** 0.4982
+- **Test Accuracy:** 0.9545
+
+### Classification Report
+```
+              precision    recall  f1-score   support
+
+Non-Promoter       1.00      0.91      0.95        11
+    Promoter       0.92      1.00      0.96        11
+
+    accuracy                           0.95        22
+   macro avg       0.96      0.95      0.95        22
+weighted avg       0.96      0.95      0.95        22
+```
+
+### Confusion Matrix
+```
+True Negatives: 10
+False Positives: 1
+False Negatives: 0
+True Positives: 11
+```
+
+### Additional Metrics
+- **Accuracy:** 0.9545
+- **Precision:** 0.9167
+- **Recall:** 1.0000
+- **F1-Score:** 0.9565
+- **ROC-AUC:** 0.9835
+- **PR-AUC:** 0.9834
+
+### Model Variance
+Due to the small dataset size (106 samples), model performance can vary between training runs:
+- **Typical Range:** 70-95% test accuracy
+- **Small Test Set:** Only 22 samples, so 1-2 misclassifications significantly impact accuracy
 
 ## Contact
 For questions or feedback, feel free to reach me out:
