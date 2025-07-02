@@ -8,7 +8,6 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from sklearn.model_selection import train_test_split, StratifiedKFold
-from sklearn.metrics import accuracy_score, classification_report
 
 from preprocess import load_promoter_data, one_hot_encode, DNADataset, save_processed_data, mapping
 from model import get_model
@@ -156,7 +155,7 @@ def train(
         data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
         output = model(data)
-        # output: (batch_size, 1), target: (batch_size,)
+        # Raw logits, no squeeze needed for BCEWithLogitsLoss
         loss = criterion(output.squeeze(), target.float())
         loss.backward()
         optimizer.step()
@@ -184,7 +183,8 @@ def evaluate(
             output = model(data)
             loss = criterion(output.squeeze(), target.float())
             running_loss += loss.item() * data.size(0)
-            preds = (output.squeeze() >= 0.5).long()
+            # Apply sigmoid only for predictions
+            preds = (torch.sigmoid(output.squeeze()) >= 0.5).long()
             correct += preds.eq(target).sum().item()
     avg_loss = running_loss / len(val_loader.dataset)
     accuracy = correct / len(val_loader.dataset)
@@ -219,7 +219,7 @@ def train_single_split(
     print(f"Total samples: {len(train_loader.dataset) + len(val_loader.dataset) + len(test_loader.dataset)}")
 
     model = get_model().to(device)
-    criterion = nn.BCELoss()
+    criterion = nn.BCEWithLogitsLoss()
     optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
 
     # Create models directory
@@ -295,7 +295,7 @@ def train_with_cross_validation(
 
         # Train model
         model = get_model().to(device)
-        criterion = nn.BCELoss()
+        criterion = nn.BCEWithLogitsLoss()
         optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
 
         best_val_acc = 0.0
@@ -348,7 +348,11 @@ def main() -> None:
 
     if args.method == 'cv':
         print("Training with Cross-Validation")
+
+        # Ensure model path ends with '_cv.pth'
         cv_model_path = args.model_path.replace('.pth', '_cv.pth')
+
+        # Train the cross-validation model
         train_with_cross_validation(
             args.data_path,
             k_folds=args.k_folds,

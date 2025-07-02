@@ -7,7 +7,7 @@ class PromoterCNN(nn.Module):
     """
     Convolutional Neural Network for binary classification of DNA promoter sequences.
     Input shape: (batch_size, seq_len, 4)
-    Output: sigmoid probability for promoter (1) vs non-promoter (0)
+    Output: raw logits for promoter classification
     """
     def __init__(self, sequence_length: int = 57) -> None:
         super().__init__()
@@ -36,7 +36,7 @@ class PromoterCNN(nn.Module):
         x = x.view(x.size(0), -1)
         x = torch.relu(self.fc1(x))
         x = self.dropout(x)
-        x = torch.sigmoid(self.fc2(x))
+        x = self.fc2(x)
         return x
 
 

@@ -69,49 +69,39 @@ python train.py
 ```
 Training with Train/Val/Test Split
 Using device: cuda
-Processed data not found in ../data/processed
-Running preprocessing automatically...
-Loaded 106 sequences
-All sequences have the same length.
-Processed data saved to ../data/processed
-Files created:
-  - train_dataset.pt
-  - val_dataset.pt
-  - test_dataset.pt
-  - nucleotide_mapping.pkl
-  - metadata.pkl
-Preprocessing completed successfully!
 Training samples: 63
 Validation samples: 21
 Test samples: 22
 Total samples: 106
 
 Starting training for 20 epochs...
-Epoch 1/20 - Train Loss: 0.6877 - Val Loss: 0.6760 - Val Acc: 0.6667
-New best model saved! Accuracy: 0.6667
-Epoch 2/20 - Train Loss: 0.6711 - Val Loss: 0.6626 - Val Acc: 0.6190
-Epoch 3/20 - Train Loss: 0.6485 - Val Loss: 0.6421 - Val Acc: 0.9048
-New best model saved! Accuracy: 0.9048
-Epoch 4/20 - Train Loss: 0.6245 - Val Loss: 0.6222 - Val Acc: 0.9048
-Epoch 5/20 - Train Loss: 0.5792 - Val Loss: 0.5979 - Val Acc: 0.9048
-Epoch 6/20 - Train Loss: 0.5601 - Val Loss: 0.5761 - Val Acc: 0.9048
-Epoch 7/20 - Train Loss: 0.4843 - Val Loss: 0.5515 - Val Acc: 0.8571
-Epoch 8/20 - Train Loss: 0.4565 - Val Loss: 0.5224 - Val Acc: 0.9048
-Epoch 9/20 - Train Loss: 0.4489 - Val Loss: 0.4916 - Val Acc: 0.9048
-Epoch 10/20 - Train Loss: 0.3775 - Val Loss: 0.4622 - Val Acc: 0.9524
-New best model saved! Accuracy: 0.9524
-Epoch 11/20 - Train Loss: 0.3350 - Val Loss: 0.4339 - Val Acc: 0.9524
-Epoch 12/20 - Train Loss: 0.3042 - Val Loss: 0.4089 - Val Acc: 0.9048
-Epoch 13/20 - Train Loss: 0.2371 - Val Loss: 0.3815 - Val Acc: 0.9524
-Epoch 14/20 - Train Loss: 0.2194 - Val Loss: 0.3600 - Val Acc: 0.9524
-Epoch 15/20 - Train Loss: 0.2177 - Val Loss: 0.3472 - Val Acc: 0.9048
-Epoch 16/20 - Train Loss: 0.1779 - Val Loss: 0.3146 - Val Acc: 0.9524
-Epoch 17/20 - Train Loss: 0.1377 - Val Loss: 0.2972 - Val Acc: 0.9524
-Epoch 18/20 - Train Loss: 0.1283 - Val Loss: 0.3041 - Val Acc: 0.9048
-Epoch 19/20 - Train Loss: 0.1012 - Val Loss: 0.2857 - Val Acc: 0.9048
-Epoch 20/20 - Train Loss: 0.1236 - Val Loss: 0.2599 - Val Acc: 0.9524
+Epoch 1/20 - Train Loss: 0.6921 - Val Loss: 0.6780 - Val Acc: 0.5238
+New best model saved! Accuracy: 0.5238
+Epoch 2/20 - Train Loss: 0.6528 - Val Loss: 0.6701 - Val Acc: 0.5714
+New best model saved! Accuracy: 0.5714
+Epoch 3/20 - Train Loss: 0.6030 - Val Loss: 0.6455 - Val Acc: 0.7619
+New best model saved! Accuracy: 0.7619
+Epoch 4/20 - Train Loss: 0.5755 - Val Loss: 0.6222 - Val Acc: 0.7619
+Epoch 5/20 - Train Loss: 0.5476 - Val Loss: 0.6024 - Val Acc: 0.7143
+Epoch 6/20 - Train Loss: 0.5238 - Val Loss: 0.5835 - Val Acc: 0.8095
+New best model saved! Accuracy: 0.8095
+Epoch 7/20 - Train Loss: 0.4392 - Val Loss: 0.5630 - Val Acc: 0.7619
+Epoch 8/20 - Train Loss: 0.4716 - Val Loss: 0.5417 - Val Acc: 0.8571
+New best model saved! Accuracy: 0.8571
+Epoch 9/20 - Train Loss: 0.3845 - Val Loss: 0.5203 - Val Acc: 0.6667
+Epoch 10/20 - Train Loss: 0.3189 - Val Loss: 0.4981 - Val Acc: 0.7619
+Epoch 11/20 - Train Loss: 0.2973 - Val Loss: 0.4771 - Val Acc: 0.7619
+Epoch 12/20 - Train Loss: 0.2997 - Val Loss: 0.4538 - Val Acc: 0.8571
+Epoch 13/20 - Train Loss: 0.2287 - Val Loss: 0.4377 - Val Acc: 0.8571
+Epoch 14/20 - Train Loss: 0.2143 - Val Loss: 0.4283 - Val Acc: 0.7619
+Epoch 15/20 - Train Loss: 0.1571 - Val Loss: 0.4202 - Val Acc: 0.7143
+Epoch 16/20 - Train Loss: 0.1462 - Val Loss: 0.4052 - Val Acc: 0.7143
+Epoch 17/20 - Train Loss: 0.1459 - Val Loss: 0.3834 - Val Acc: 0.8095
+Epoch 18/20 - Train Loss: 0.1119 - Val Loss: 0.3832 - Val Acc: 0.7619
+Epoch 19/20 - Train Loss: 0.1301 - Val Loss: 0.3732 - Val Acc: 0.8095
+Epoch 20/20 - Train Loss: 0.0833 - Val Loss: 0.3718 - Val Acc: 0.7619
 
-Training completed! Best Accuracy: 0.9524
+Training completed! Best Accuracy: 0.8571
 Best model saved as: ../results/models/promoter_cnn.pth
 ```
 
@@ -126,14 +116,57 @@ python test.py
 
 #### Expected output:
 ```
+Testing Train/Val/Test split model
+Using device: cuda
+Test samples: 22
+Loaded model from: ../results/models/promoter_cnn.pth
 
+==================
+ GENERATING PLOTS
+==================
+Confusion matrix saved: ../results/plots/confusion_matrix_train-val-test_split.png
+ROC curve saved: ../results/plots/roc_curve_train-val-test_split.png
+Precision-Recall curve saved: ../results/plots/precision_recall_train-val-test_split.png
+Prediction distribution saved: ../results/plots/prediction_distribution_train-val-test_split.png
+Metrics summary saved: ../results/plots/metrics_summary_train-val-test_split.png
+
+===============================
+ FINAL TEST EVALUATION RESULTS
+===============================
+Test Loss: 0.4982
+Test Accuracy: 0.9545
+
+Classification Report:
+              precision    recall  f1-score   support
+
+Non-Promoter       1.00      0.91      0.95        11
+    Promoter       0.92      1.00      0.96        11
+
+    accuracy                           0.95        22
+   macro avg       0.96      0.95      0.95        22
+weighted avg       0.96      0.95      0.95        22
+
+
+Confusion Matrix:
+True Negatives: 10, False Positives: 1
+False Negatives: 0, True Positives: 11
+
+Additional Metrics:
+Accuracy: 0.9545
+Precision: 0.9167
+Recall: 1.0000
+F1-Score: 0.9565
+ROC-AUC: 0.9835
+PR-AUC: 0.9834
+
+Final Test Accuracy: 0.9545
 ```
 
 ## Key Implementations
 ### Data Preprocessing
 - Read `promoters.data`, parse labels (`+` → 1, `-` → 0) and sequences.
 - One-hot encode each nucleotide into a 4-dim vector.
-- Split into train/test sets (70/30 stratified).
+- Split into train/val/test sets (60/20/20 stratified).
 - Wrap data in a PyTorch `Dataset` and create `DataLoaders`.
 
 ## Results & Analysis
